@@ -21,7 +21,7 @@ export default function Page() {
           content={process.env.NEXT_PUBLIC_SUMMARIZE_TOKEN}
         />
       </Head>
-      <div className="bg-[#ffffff] lg:px-[10rem] px-[4rem] py-[3rem]">
+      <div className="bg-[#ffffff] lg:px-[10rem] px-[1.3rem] py-[3rem]">
         <FetchTrans />
       </div>
     </>

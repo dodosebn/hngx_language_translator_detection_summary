@@ -1,9 +1,18 @@
-"use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import React, { useEffect, useState, useCallback } from "react";
 import type { LanguageDetectorCapabilities, DetectedLanguageResult, SummarizerOptions } from "@/types";
 import Inputa from "./inputa";
 import DisplayUpInputa from "./displayUpInputa";
+import BeforeText from "./customs/beforeText";
+
+const languageMap: { [key: string]: string } = {
+  en: "English",
+  pt: "Portuguese",
+  es: "Spanish",
+  fr: "French",
+  de: "German",
+};
 
 const FetchTrans: React.FC = () => {
   const [txtToBeTranslated, setTxtToBeTranslated] = useState<string>("");
@@ -12,9 +21,10 @@ const FetchTrans: React.FC = () => {
   const [summarizedTxt, setSummarizedTxt] = useState<string>("");
   const [detectedLangMessage, setDetectedLangMessage] = useState<string>("");
   const [detectedLangCode, setDetectedLangCode] = useState<string>("");
+  const [displayText, setDisplayText] = useState<string>("");
 
-  const detectLanguageAPI = useCallback(async () => {
-    if (!txtToBeTranslated.trim()) {
+  const detectLanguageAPI = useCallback(async (text: string) => {
+    if (!text.trim()) {
       setDetectedLangMessage("Text is empty");
       setDetectedLangCode("");
       setTranslatedTxt("");
@@ -24,8 +34,7 @@ const FetchTrans: React.FC = () => {
 
     try {
       if ("ai" in self && "languageDetector" in (self.ai as any)) {
-        const languageDetectorCapabilities: LanguageDetectorCapabilities =
-          await (self.ai as any).languageDetector.capabilities();
+        const languageDetectorCapabilities: LanguageDetectorCapabilities = await (self.ai as any).languageDetector.capabilities();
         const canDetect = languageDetectorCapabilities.available;
         let detector;
 
@@ -47,16 +56,11 @@ const FetchTrans: React.FC = () => {
           await detector.ready;
         }
 
-        const results: DetectedLanguageResult[] = await detector.detect(
-          txtToBeTranslated
-        );
+        const results: DetectedLanguageResult[] = await detector.detect(text);
         if (results?.[0]) {
           const topResult = results[0];
-          setDetectedLangMessage(
-            `${(topResult.confidence * 100).toFixed(1)}% sure this is ${
-              topResult.detectedLanguage
-            }`
-          );
+          const detectedLanguageName = languageMap[topResult.detectedLanguage] || topResult.detectedLanguage;
+          setDetectedLangMessage(`${(topResult.confidence * 100).toFixed(1)}% sure this is ${detectedLanguageName}`);
           setDetectedLangCode(topResult.detectedLanguage);
         } else {
           setDetectedLangMessage("Could not detect language");
@@ -69,9 +73,9 @@ const FetchTrans: React.FC = () => {
       setDetectedLangMessage("Error detecting language");
       console.error("Error:", error);
     }
-  }, [txtToBeTranslated]);
+  }, []);
 
-  const handleSummarize = async () => {
+  const handleSummarize = useCallback(async () => {
     try {
       if (!detectedLangCode) return;
 
@@ -83,9 +87,7 @@ const FetchTrans: React.FC = () => {
           length: "medium",
         };
 
-        const available: "no" | "readily" | "conditionally" = (
-          await (self.ai as any).summarizer.capabilities()
-        ).available;
+        const available: "no" | "readily" | "conditionally" = (await (self.ai as any).summarizer.capabilities()).available;
         let summarizer;
 
         if (available === "no") {
@@ -97,12 +99,9 @@ const FetchTrans: React.FC = () => {
         summarizer = await (self.ai as any).summarizer.create(options);
 
         if (available === "conditionally") {
-          summarizer.addEventListener(
-            "downloadprogress",
-            (e: ProgressEvent) => {
-              console.log(`Downloaded ${e.loaded} of ${e.total} bytes.`);
-            }
-          );
+          summarizer.addEventListener("downloadprogress", (e: ProgressEvent) => {
+            console.log(`Downloaded ${e.loaded} of ${e.total} bytes.`);
+          });
           await summarizer.ready;
         }
 
@@ -115,9 +114,9 @@ const FetchTrans: React.FC = () => {
       setSummarizedTxt("Error summarizing text");
       console.error("Error:", err);
     }
-  };
+  }, [detectedLangCode, txtToBeTranslated]);
 
-  const handleTranslate = async (targetLanguage: string) => {
+  const handleTranslate = useCallback(async (targetLanguage: string) => {
     if (!detectedLangCode) {
       setTranslatedTxt("Please detect language first");
       return;
@@ -136,9 +135,7 @@ const FetchTrans: React.FC = () => {
         });
         await translator.ready;
 
-        const translation: string = await translator.translate(
-          txtToBeTranslated
-        );
+        const translation: string = await translator.translate(txtToBeTranslated);
         setTranslatedTxt(translation || "Error in translation");
       } else {
         setTranslatedTxt("Translator API is not supported.");
@@ -147,12 +144,12 @@ const FetchTrans: React.FC = () => {
       setTranslatedTxt("Error translating text");
       console.error("Error:", error);
     }
-  };
+  }, [detectedLangCode, txtToBeTranslated]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (txtToBeTranslated) {
-        detectLanguageAPI();
+        detectLanguageAPI(txtToBeTranslated);
       } else {
         setDetectedLangMessage("");
         setDetectedLangCode("");
@@ -165,19 +162,36 @@ const FetchTrans: React.FC = () => {
   }, [txtToBeTranslated, detectLanguageAPI]);
 
   useEffect(() => {
-    setShowSummarize(
-      txtToBeTranslated.length > 150 && detectedLangCode === "en"
-    );
+    setShowSummarize(txtToBeTranslated.length > 150 && detectedLangCode === "en");
   }, [txtToBeTranslated, detectedLangCode]);
 
+  const handlePostText = (text: string) => {
+    setDisplayText(text);
+    setTxtToBeTranslated(""); // Clear the textarea
+  };
+
   return (
-    <div className="p-4">
-      <main>
-      <DisplayUpInputa txtToBeTranslated={txtToBeTranslated} detectedLangMessage={detectedLangMessage} showSummarize={showSummarize} handleSummarize={handleSummarize} summarizedTxt={summarizedTxt} handleTranslate={handleTranslate} translatedTxt={translatedTxt}/>
-      </main>
+    <div className="p-4 min-h-screen">
       <div>
-   <Inputa txtToBeTranslated={txtToBeTranslated} setTxtToBeTranslated={setTxtToBeTranslated} detectLanguageAPI={detectLanguageAPI}/>
-   </div>
+        {displayText === '' ? <BeforeText /> : (
+          <DisplayUpInputa
+            txtToBeTranslated={displayText}
+            detectedLangMessage={detectedLangMessage}
+            showSummarize={showSummarize}
+            handleSummarize={handleSummarize}
+            summarizedTxt={summarizedTxt}
+            handleTranslate={handleTranslate}
+            translatedTxt={translatedTxt}
+          />
+        )}
+      </div>
+      <main className="fixed bottom-0 left-0 w-full bg-white p-4 shadow-md">
+        <Inputa
+          txtToBeTranslated={txtToBeTranslated}
+          setTxtToBeTranslated={setTxtToBeTranslated}
+          handlePostText={handlePostText}
+        />
+      </main>
     </div>
   );
 };
