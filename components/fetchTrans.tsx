@@ -105,7 +105,7 @@ const FetchTrans: React.FC = () => {
           await summarizer.ready;
         }
 
-        const summary: string = await summarizer.summarize(txtToBeTranslated);
+        const summary: string = await summarizer.summarize(displayText);
         setSummarizedTxt(summary || "Error summarizing text");
       } else {
         setSummarizedTxt("Summarizer API is not supported.");
@@ -114,7 +114,7 @@ const FetchTrans: React.FC = () => {
       setSummarizedTxt("Error summarizing text");
       console.error("Error:", err);
     }
-  }, [detectedLangCode, txtToBeTranslated]);
+  }, [detectedLangCode, displayText]);
 
   const handleTranslate = useCallback(async (targetLanguage: string) => {
     if (!detectedLangCode) {
@@ -135,7 +135,7 @@ const FetchTrans: React.FC = () => {
         });
         await translator.ready;
 
-        const translation: string = await translator.translate(txtToBeTranslated);
+        const translation: string = await translator.translate(displayText);
         setTranslatedTxt(translation || "Error in translation");
       } else {
         setTranslatedTxt("Translator API is not supported.");
@@ -144,12 +144,12 @@ const FetchTrans: React.FC = () => {
       setTranslatedTxt("Error translating text");
       console.error("Error:", error);
     }
-  }, [detectedLangCode, txtToBeTranslated]);
+  }, [detectedLangCode, displayText]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (txtToBeTranslated) {
-        detectLanguageAPI(txtToBeTranslated);
+      if (displayText) {
+        detectLanguageAPI(displayText);
       } else {
         setDetectedLangMessage("");
         setDetectedLangCode("");
@@ -159,15 +159,15 @@ const FetchTrans: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [txtToBeTranslated, detectLanguageAPI]);
+  }, [displayText, detectLanguageAPI]);
 
   useEffect(() => {
-    setShowSummarize(txtToBeTranslated.length > 150 && detectedLangCode === "en");
-  }, [txtToBeTranslated, detectedLangCode]);
+    setShowSummarize(displayText.length > 150 && detectedLangCode === "en");
+  }, [displayText, detectedLangCode]);
 
   const handlePostText = (text: string) => {
     setDisplayText(text);
-    setTxtToBeTranslated(""); // Clear the textarea
+    setTxtToBeTranslated(""); 
   };
 
   return (
