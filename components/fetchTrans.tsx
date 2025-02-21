@@ -2,11 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useCallback } from "react";
 import { IoSendSharp } from "react-icons/io5";
-import {
-  LanguageDetectorCapabilities,
-  DetectedLanguageResult,
-  SummarizerOptions,
-} from "@/types";
+import type { LanguageDetectorCapabilities, DetectedLanguageResult, SummarizerOptions } from "@/types";
+
 
 const FetchTrans: React.FC = () => {
   const [txtToBeTranslated, setTxtToBeTranslated] = useState<string>("");
