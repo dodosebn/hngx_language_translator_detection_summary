@@ -1,9 +1,9 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useCallback } from "react";
-import { IoSendSharp } from "react-icons/io5";
 import type { LanguageDetectorCapabilities, DetectedLanguageResult, SummarizerOptions } from "@/types";
-
+import Inputa from "./inputa";
+import DisplayUpInputa from "./displayUpInputa";
 
 const FetchTrans: React.FC = () => {
   const [txtToBeTranslated, setTxtToBeTranslated] = useState<string>("");
@@ -172,62 +172,12 @@ const FetchTrans: React.FC = () => {
 
   return (
     <div className="p-4">
-      <div className="mb-4 relative">
-        <textarea
-          className="w-full p-2 border rounded pr-10"
-          value={txtToBeTranslated}
-          onChange={(e) => setTxtToBeTranslated(e.target.value)}
-          placeholder="Type or paste your text here..."
-        />
-        <button
-          onClick={detectLanguageAPI}
-          className="absolute right-2 top-2 text-blue-500 hover:text-blue-700"
-        >
-          <IoSendSharp />
-        </button>
-      </div>
-
-      {txtToBeTranslated && (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Detected Language: {detectedLangMessage}
-          </p>
-
-          {showSummarize && (
-            <button
-              onClick={handleSummarize}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
-            >
-              Summarize
-            </button>
-          )}
-
-          {summarizedTxt && (
-            <div className="p-4 bg-gray-100 rounded">
-              <p className="italic">{summarizedTxt}</p>
-            </div>
-          )}
-
-          <select
-            onChange={(e) => handleTranslate(e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="">Translate to Language</option>
-            <option value="en">English</option>
-            <option value="pt">Portuguese</option>
-            <option value="es">Spanish</option>
-            <option value="ru">Russian</option>
-            <option value="tr">Turkish</option>
-            <option value="fr">French</option>
-          </select>
-
-          {translatedTxt && (
-            <div className="p-4 bg-gray-100 rounded">
-              <p>{translatedTxt}</p>
-            </div>
-          )}
-        </div>
-      )}
+      <main>
+      <DisplayUpInputa txtToBeTranslated={txtToBeTranslated} detectedLangMessage={detectedLangMessage} showSummarize={showSummarize} handleSummarize={handleSummarize} summarizedTxt={summarizedTxt} handleTranslate={handleTranslate} translatedTxt={translatedTxt}/>
+      </main>
+      <div>
+   <Inputa txtToBeTranslated={txtToBeTranslated} setTxtToBeTranslated={setTxtToBeTranslated} detectLanguageAPI={detectLanguageAPI}/>
+   </div>
     </div>
   );
 };
