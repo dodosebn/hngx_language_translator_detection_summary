@@ -29,7 +29,7 @@ const DisplayUpInputa: React.FC<DisplayUpInputaProps> = ({
 
         {txtToBeTranslated && (
           <div className="space-y-4 mt-4">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-black">
               Detected Language: {detectedLangMessage}
             </p>
 
